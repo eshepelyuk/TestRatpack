@@ -1,15 +1,18 @@
-import ratpack.config.internal.source.YamlConfigSource
-import ua.eshepelyuk.ratpack.DatabaseConfig
+package ua.eshepelyuk.ratpack
+
+import ua.eshepelyuk.ratpack.ratpack.config.internal.source.YamlConfigSource
 
 import javax.annotation.Resources
 
-import static ratpack.groovy.Groovy.*
+import static ua.eshepelyuk.ratpack.ratpack.groovy.Groovy.*
 
 ratpack {
 
     serverConfig {
         add(new YamlConfigSource(Resources.getResource("/ratpack.yml")))
+            .onError(ratpack.func.Action.noop()) { e -> throw e }
             .require("/database", DatabaseConfig)
+
     }
 
     bindings {
