@@ -3,6 +3,8 @@ package ua.eshepelyuk.ratpack
 import groovy.json.JsonSlurper
 import groovy.sql.Sql
 import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
+import ratpack.impose.ImpositionsSpec
+import ratpack.impose.ServerConfigImposition
 import ratpack.test.ServerBackedApplicationUnderTest
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
@@ -16,14 +18,21 @@ class NewsIntegrationTest extends Specification {
 
     @Shared
     @AutoCleanup
-    ServerBackedApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest()
-
-    @Delegate
-    TestHttpClient client = testHttpClient(aut)
+    Sql sql = Sql.newInstance("jdbc:h2:mem:dev;DATABASE_TO_UPPER=false", "sa", "")
 
     @Shared
     @AutoCleanup
-    Sql sql = Sql.newInstance("jdbc:h2:mem:dev;DATABASE_TO_UPPER=false", "sa", "")
+    ServerBackedApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest() {
+        @Override
+        protected void addImpositions(ImpositionsSpec impositions) {
+            impositions.add(ServerConfigImposition.of({
+                it.props(["database.url": "jdbc:h2:mem:dev;DATABASE_TO_UPPER=false"])
+            }))
+        }
+    }
+
+    @Delegate
+    TestHttpClient client = testHttpClient(aut)
 
     @Shared
     def JSON = new JsonSlurper()
