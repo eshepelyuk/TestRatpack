@@ -9,7 +9,7 @@ class NewsIntegrationTest extends Specification {
 //        Response postNewsResp = NEWS.request(APPLICATION_JSON_TYPE).post(json(new NewsItem("title1", "author1", "content1", new Date())));
 //        Long insertedId = postNewsResp.readEntity(Long.class);
 
-        then: "postNewsResp is OK, DB populated with corresponding item"
+        then: "response is OK, DB populated with corresponding item"
 //        assertThat(postNewsResp.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
 //        assertThat((Long) (jdbi.withHandle(handle -> (Long) handle.select("select count(*) as cnt from news_item where id = :id", insertedId).get(0).get("cnt")))).isEqualTo(1L);
 
@@ -22,7 +22,7 @@ class NewsIntegrationTest extends Specification {
 //        assertThat(items.iterator().next().getId()).isEqualTo(insertedId);
     }
 
-    def "when news posted then tt can be retrieved separately"() {
+    def "when news posted then it can be retrieved separately"() {
         given:
         NewsItem originalItem = new NewsItem(title: "title2", author: "author2", content: "content2");
 
@@ -30,7 +30,7 @@ class NewsIntegrationTest extends Specification {
 //        Response postNewsResp = NEWS.request(APPLICATION_JSON_TYPE).post(json(originalItem));
 //        Long insertedId = postNewsResp.readEntity(Long.class);
 
-        then: "postNewsResp is OK, DB populated with corresponding item"
+        then: "response is OK, DB populated with corresponding item"
 //        assertThat(postNewsResp.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
 //        assertThat((Long) (jdbi.withHandle(handle -> (Long) handle.select("select count(*) as cnt from news_item where id = :id", insertedId).get(0).get("cnt")))).isEqualTo(1L);
 
