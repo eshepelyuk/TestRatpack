@@ -4,6 +4,7 @@ import groovy.json.JsonSlurper
 import ratpack.jackson.JsonRender
 import spock.lang.Specification
 
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_ACCEPTABLE
 import static ratpack.groovy.test.handling.GroovyRequestFixture.handle
 
 class NewsTest extends Specification {
@@ -38,18 +39,22 @@ class NewsTest extends Specification {
         result.rendered(JsonRender).object[0] == items[0]
     }
 
-//    def shouldAcceptOnlyJSONForFindAllNews() {
-//        given:
-//        Collection<NewsItem> items = singletonList(createItem(1L));
-//        when(itemsDao.findAll()).thenReturn(items);
-//
-//        when: using unsupported content type
-//        Response response = NEWS.request(APPLICATION_ATOM_XML_TYPE).get();
-//
-//        then: DAO not called and HTTP status 4XX returned
-//        verifyZeroInteractions(itemsDao);
-//        assertThat(response.getStatus()).isEqualTo(NOT_ACCEPTABLE.getStatusCode());
-//    }
+    def "should accept only JSON for find all news"() {
+        given:
+        def items = [createItem(1L)]
+        and:
+        0 * newsItemDAO.findAll() >> items
+
+        when: "using unsupported content type"
+        def result = handle(newsItemActionChain) {
+            uri ""
+            method "GET"
+            header "Accept", "application/xml"
+        }
+
+        then: "DAO not called and HTTP status 4XX returned"
+        result.status.nettyStatus == NOT_ACCEPTABLE
+    }
 //
 //    def shouldUseDaoForFindSingleNews() {
 //        given:

@@ -12,6 +12,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import static groovy.json.JsonOutput.toJson
+import static io.netty.handler.codec.http.HttpResponseStatus.OK
 import static ratpack.http.MediaType.APPLICATION_JSON
 
 class NewsIntegrationTest extends Specification {
@@ -51,7 +52,7 @@ class NewsIntegrationTest extends Specification {
         def insertedId = postText("news")
 
         then: "response is OK, DB populated with corresponding item"
-        response.statusCode == 200
+        response.status.nettyStatus == OK
         and:
         sql.firstRow("select count(*) from news_item where id = ${insertedId}")[0] == 1
 
@@ -76,7 +77,7 @@ class NewsIntegrationTest extends Specification {
         def insertedId = postText("news")
 
         then: "response is OK, DB populated with corresponding item"
-        response.statusCode == 200
+        response.status.nettyStatus == OK
         and:
         sql.firstRow("select count(*) from news_item where id = ${insertedId}")[0] == 1
 
