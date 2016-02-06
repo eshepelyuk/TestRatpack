@@ -8,5 +8,5 @@ class NewsItem {
     String title
     String author
     String content
-    Date publishDate
+    Date publishDate = new Date()
 }
