@@ -1,3 +1,5 @@
+package ua.eshepelyuk.ratpack
+
 import spock.lang.Specification
 
 class NewsSpec extends Specification {

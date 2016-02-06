@@ -7,15 +7,12 @@ import javax.inject.Singleton
 
 @Singleton
 class NewsItemDAO {
-
     @Inject
     Sql sql
 
-//    @SqlUpdate("insert into news_item (title, author, content, publishDate) values (:title, :author, :content, :publishDate)")
-//    @GetGeneratedKeys
     Long insert(NewsItem item) {
-        println("@@@@ ${item}")
-        1L
+        def list = sql.executeInsert("insert into news_item (title, author, content, publishDate) values (:title, :author, :content, :publishDate)", item.properties)
+        list[0][0] as Long
     }
 
     Collection<NewsItem> findAll() {
