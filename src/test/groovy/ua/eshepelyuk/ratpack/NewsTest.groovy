@@ -1,11 +1,11 @@
 package ua.eshepelyuk.ratpack
 
+import groovy.json.JsonOutput
 import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.jackson.JsonRender
 import spock.lang.Specification
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_ACCEPTABLE
-import static io.netty.handler.codec.http.HttpResponseStatus.OK
 import static ratpack.groovy.test.handling.GroovyRequestFixture.handle
 import static ratpack.handling.internal.DefaultByContentSpec.TYPE_JSON
 import static ratpack.handling.internal.DefaultByContentSpec.TYPE_XML
@@ -116,23 +116,26 @@ class NewsTest extends Specification {
         }
 
         then:
-        response.status.nettyStatus == OK
+        response.exception(RuntimeException).message == "DB error"
     }
 
-//    @Test
-//    public void shouldUseDaoForAddingNews() {
-//        given:
-//        NewsItem item = createItemWithoutId();
-//        when(itemsDao.insert(any(NewsItem.class))).thenReturn(444L);
-//
-//        when:
-//        Long insertedId = NEWS.request(APPLICATION_JSON_TYPE).post(json(item)).readEntity(Long.class);
-//
-//        then: DAO called and proper result returned
-//        verify(itemsDao).insert(any(NewsItem.class));
-//        assertThat(insertedId).isEqualTo(444L);
-//    }
-//
+    def "should Use Dao For Adding News"() {
+        given:
+        NewsItem item = createItemWithoutId()
+        1 * newsItemDAO.insert(_) >> 444L
+
+        when:
+        def response = handle(newsItemActionChain) {
+            uri ""
+            method "POST"
+            body(JsonOutput.toJson(item), TYPE_JSON)
+            header "Accept", TYPE_JSON
+        }
+
+        then: "DAO called and proper result returned"
+        response.bodyText as Long == 444L
+    }
+
 //    @Test
 //    public void shouldAcceptOnlyJSONForAddingNews() {
 //        given:

@@ -1,5 +1,6 @@
 package ua.eshepelyuk.ratpack
 
+import ratpack.exec.Blocking
 import ratpack.groovy.handling.GroovyChainAction
 import ratpack.jackson.Jackson
 
@@ -19,12 +20,11 @@ class NewsItemChainAction extends GroovyChainAction {
         get(":id") {
             byContent {
                 json {
-                    def item = newsItemDAO.findById(pathTokens.id as Long)
-                    if (item) {
-                        render Jackson.json(item)
-                    } else {
+                    Blocking.get { newsItemDAO.findById(pathTokens.id as Long) }
+                        .onNull {
                         context.response.status(of(NOT_FOUND.code())).send("News Item not found by id=${pathTokens.id}")
                     }
+                        .then { render Jackson.json(it) }
                 }
             }
         }
