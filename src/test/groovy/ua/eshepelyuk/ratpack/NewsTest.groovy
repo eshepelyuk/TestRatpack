@@ -1,21 +1,41 @@
 package ua.eshepelyuk.ratpack
 
+import groovy.json.JsonSlurper
+import ratpack.jackson.JsonRender
 import spock.lang.Specification
 
-class NewsTest extends Specification {
-    def shouldUseDaoForFindAllNews() {
-        given: ""
-//        Collection<NewsItem> items = singletonList(createItem(1L));
-//        when(itemsDao.findAll()).thenReturn(items);
+import static ratpack.groovy.test.handling.GroovyRequestFixture.handle
 
-        when: ""
-//        Collection<NewsItem> retrieved = NEWS.request(APPLICATION_JSON_TYPE).get().readEntity(new GenericType<Collection<NewsItem>>() {
-//        });
+class NewsTest extends Specification {
+    private static NewsItem createItem(Long id) {
+        return new NewsItem(id, "title$id", "author$id", "content$id")
+    }
+
+    private static NewsItem createItemWithoutId() {
+        return new NewsItem(null, "title", "author", "content")
+    }
+
+    static def JSON = new JsonSlurper()
+
+    def newsItemDAO = Mock(NewsItemDAO)
+
+    def newsItemActionChain = new NewsItemChainAction(newsItemDAO: newsItemDAO)
+
+    def "should use DAO for find all news"() {
+        given:
+        Collection<NewsItem> items = [createItem(1L)]
+        and: "dao should be called once"
+        1 * newsItemDAO.findAll() >> items
+
+        when:
+        def result = handle(newsItemActionChain) {
+            uri ""
+            method "GET"
+            header "Accept", "application/json"
+        }
 
         then: "DAO called and proper result returned"
-//        verify(itemsDao).findAll();
-//        assertThat(retrieved.size()).isEqualTo(1);
-//        assertThat(retrieved.iterator().next().getId()).isEqualTo(1L);
+        result.rendered(JsonRender).object[0] == items[0]
     }
 
 //    def shouldAcceptOnlyJSONForFindAllNews() {

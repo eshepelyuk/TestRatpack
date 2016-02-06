@@ -25,6 +25,7 @@ class NewsIntegrationTest extends Specification {
     @Shared
     @AutoCleanup
     ServerBackedApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest() {
+
         @Override
         protected void addImpositions(ImpositionsSpec impositions) {
             impositions.add(ServerConfigImposition.of {
@@ -36,8 +37,7 @@ class NewsIntegrationTest extends Specification {
     @Delegate
     TestHttpClient client = testHttpClient(aut)
 
-    @Shared
-    def JSON = new JsonSlurper()
+    static def JSON = new JsonSlurper()
 
     def "when news posted then it appears in all items list"() {
         when: "posting news item"
