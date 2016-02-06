@@ -4,12 +4,10 @@ import ratpack.groovy.sql.SqlModule
 import ratpack.h2.H2Module
 import ua.eshepelyuk.ratpack.DatabaseConfig
 import ua.eshepelyuk.ratpack.FlywayService
-import ua.eshepelyuk.ratpack.NewsItem
+import ua.eshepelyuk.ratpack.NewsItemChainAction
 import ua.eshepelyuk.ratpack.NewsItemDAO
 
 import static ratpack.groovy.Groovy.ratpack
-import static ratpack.http.Status.of
-import static ratpack.jackson.Jackson.json
 
 ratpack {
     serverConfig {
@@ -24,29 +22,13 @@ ratpack {
 
         module(SqlModule)
         bind(NewsItemDAO)
+
+        bind(NewsItemChainAction)
     }
 
     handlers {
-        path("news") { NewsItemDAO dao ->
-            byMethod {
-                post {
-                    context.parse(NewsItem)
-                        .blockingMap { dao.insert(it) }
-                        .then { context.response.send(it.toString()) }
-                }
-                get {
-                    render json(dao.findAll())
-                }
-            }
-        }
-
-        get("news/:id") { NewsItemDAO dao ->
-            def item = dao.findById(pathTokens.id as Long)
-            if (item) {
-                render json(item)
-            } else {
-                context.response.status(of(404)).send("News Item not found by id=${pathTokens.id}")
-            }
+        prefix("news") {
+            all chain(NewsItemChainAction)
         }
     }
 }
