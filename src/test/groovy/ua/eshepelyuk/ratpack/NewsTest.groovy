@@ -3,15 +3,13 @@ package ua.eshepelyuk.ratpack
 import com.fasterxml.jackson.core.JsonParseException
 import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.jackson.JsonRender
-import spock.lang.Ignore
 import spock.lang.Specification
 
+import javax.validation.ConstraintViolationException
 import javax.validation.Validation
-import javax.validation.ValidatorFactory
 
 import static groovy.json.JsonOutput.toJson
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_ACCEPTABLE
-import static io.netty.handler.codec.http.HttpResponseStatus.UNPROCESSABLE_ENTITY
 import static ratpack.groovy.test.handling.GroovyRequestFixture.handle
 import static ratpack.handling.internal.DefaultByContentSpec.TYPE_JSON
 import static ratpack.handling.internal.DefaultByContentSpec.TYPE_XML
@@ -64,7 +62,7 @@ class NewsTest extends Specification {
         response.status.nettyStatus == NOT_ACCEPTABLE
     }
 
-    def "should Use Dao For Find Single News"() {
+    def "should use DAO for find single news"() {
         given:
         def item = createItem(2L)
         1 * newsItemDAO.findById(2L) >> item
@@ -80,7 +78,7 @@ class NewsTest extends Specification {
         response.rendered(JsonRender).object == item
     }
 
-    def "should Accept Only JSON For Find Single News"() {
+    def "should accept only JSON for find single news"() {
         given:
         NewsItem item = createItem(2L)
         0 * newsItemDAO.findById(2L)
@@ -96,7 +94,7 @@ class NewsTest extends Specification {
         response.status.nettyStatus == NOT_ACCEPTABLE
     }
 
-    def "should Not Return 200 If Item Not Found"() {
+    def "should not return 200 if item not found"() {
         given:
         1 * newsItemDAO.findById(2L) >> null
 
@@ -111,7 +109,7 @@ class NewsTest extends Specification {
         response.status.nettyStatus == HttpResponseStatus.NOT_FOUND
     }
 
-    def "should Not Return 200 If DB error"() {
+    def "should not return 200 if DB error"() {
         given: "DB throws exception"
         1 * newsItemDAO.findById(_) >> { throw new RuntimeException("DB error") }
 
@@ -126,7 +124,7 @@ class NewsTest extends Specification {
         response.exception(RuntimeException).message == "DB error"
     }
 
-    def "should Use Dao For Adding News"() {
+    def "should use DAO for adding news"() {
         given:
         NewsItem item = createItemWithoutId()
         1 * newsItemDAO.insert(_) >> 444L
@@ -143,7 +141,7 @@ class NewsTest extends Specification {
         response.bodyText as Long == 444L
     }
 
-    def "should Accept Only JSON For Adding News"() {
+    def "should accept only JSON for adding news"() {
         given:
         NewsItem item = createItemWithoutId()
         0 * newsItemDAO.insert(_)
@@ -160,7 +158,7 @@ class NewsTest extends Specification {
         response.status.nettyStatus == NOT_ACCEPTABLE
     }
 
-    def "should Accept Only Proper JSON For Adding News"() {
+    def "should accept only proper JSON for adding news"() {
         given:
         0 * newsItemDAO.insert(_)
 
@@ -168,12 +166,12 @@ class NewsTest extends Specification {
         def response = handle(newsItemActionChain) {
             uri ""
             method "POST"
-            body("test string", TYPE_JSON)
+            body("qwerty", TYPE_JSON)
             header "Accept", TYPE_JSON
         }
 
         then: "DAO not called and 4XX returned"
-        response.exception(JsonParseException) != null
+        response.exception(JsonParseException).originalMessage.contains("qwerty")
     }
 
     def "should validate item when adding news"() {
@@ -190,6 +188,8 @@ class NewsTest extends Specification {
         }
 
         then: "DAO not called and 4XX returned"
-        response.status.code == UNPROCESSABLE_ENTITY.code()
+        response.exception(ConstraintViolationException).constraintViolations.with {
+            it.size() == 1 && it[0].invalidValue == null
+        }
     }
 }

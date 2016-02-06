@@ -6,6 +6,7 @@ import ratpack.groovy.handling.GroovyChainAction
 import ratpack.jackson.Jackson
 
 import javax.inject.Inject
+import javax.validation.ConstraintViolationException
 import javax.validation.Validator
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND
@@ -43,7 +44,12 @@ class NewsItemChainAction extends GroovyChainAction {
                     byMethod {
                         post {
                             context.parse(NewsItem).flatMap {
-                                validator.validate(it).size() == 0 ? value(it) : error(new IllegalArgumentException("validation failed"))
+                                def violations = validator.validate(it)
+                                if (violations.isEmpty()) {
+                                    value(it)
+                                } else {
+                                    error(new ConstraintViolationException("NewsItem validation failed", violations))
+                                }
                             } blockingMap {NewsItem item ->
                                 newsItemDAO.insert(item)
                             } onError(IllegalArgumentException, {
