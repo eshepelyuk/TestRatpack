@@ -13,12 +13,10 @@ import javax.sql.DataSource
 @Singleton
 class FlywayService implements Service {
 
-//    @Inject DataSource dataSource
-    @Inject DatabaseConfig databaseConfig
+    @Inject DataSource dataSource
 
     @Override
     void onStart(StartEvent event) throws Exception {
-        println(databaseConfig)
         Flyway flyway = new Flyway()
         flyway.setDataSource(dataSource)
         flyway.migrate()

@@ -1,7 +1,12 @@
 package ua.eshepelyuk.ratpack
 
-/**
- * Created by Ievgenii.Shepeliuk on 04.02.2016.
- */
+import groovy.transform.ToString
+
+@ToString(includeNames = true)
 class NewsItem {
+    Long id
+    String title
+    String author
+    String content
+    Date publishDate
 }

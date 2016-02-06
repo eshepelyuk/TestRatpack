@@ -1,33 +1,36 @@
 package ua.eshepelyuk.ratpack
 
-import ua.eshepelyuk.ratpack.ratpack.config.internal.source.YamlConfigSource
+import com.google.common.io.Resources
+import ratpack.func.Action
+import ratpack.groovy.sql.SqlModule
+import ratpack.h2.H2Module
 
-import javax.annotation.Resources
-
-import static ua.eshepelyuk.ratpack.ratpack.groovy.Groovy.*
+import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
-
     serverConfig {
-        add(new YamlConfigSource(Resources.getResource("/ratpack.yml")))
-            .onError(ratpack.func.Action.noop()) { e -> throw e }
-            .require("/database", DatabaseConfig)
-
+        onError(Action.throwException()).yaml(Resources.getResource("ratpack.yml")).require("/database", DatabaseConfig)
     }
 
     bindings {
-        println("${serverConfig.get("/database", DatabaseConfig)}")
+        def dbCfg = serverConfig.get("/database", DatabaseConfig)
+        module(new H2Module(dbCfg.user, dbCfg.password, dbCfg.url))
+
+        bind(FlywayService)
+
+        module(SqlModule)
+        bind(NewsItemDAO)
     }
 
     handlers {
-        get("news") {
-            render "All News"
+        post("news") { NewsItemDAO dao ->
+            render "ID: ${context.parse(NewsItem).next { dao.insert(it) }}"
         }
-        post("news") {
-            render "Create News"
+        get("news") { NewsItemDAO dao ->
+            render "All News : ${dao.findAll()}"
         }
-        get("news/:name") {
-            render "Hello $pathTokens.name"
+        get("news/:id") { NewsItemDAO dao ->
+            render "News: ${dao.findById(pathTokens.id as Long)}"
         }
     }
 }
