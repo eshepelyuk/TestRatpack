@@ -83,7 +83,9 @@ class NewsIntegrationTest extends Specification {
 
         when: "getting single item"
         requestSpec {
-            it.body.type(APPLICATION_JSON)
+            it.body.with {
+                type(APPLICATION_JSON)
+            }
         }
         def text = getText("news/$insertedId")
         def retrievedItem = JSON.parseText(text)

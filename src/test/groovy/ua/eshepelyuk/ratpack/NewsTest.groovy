@@ -1,6 +1,5 @@
 package ua.eshepelyuk.ratpack
 
-import groovy.json.JsonSlurper
 import ratpack.jackson.JsonRender
 import spock.lang.Specification
 
@@ -15,8 +14,6 @@ class NewsTest extends Specification {
     private static NewsItem createItemWithoutId() {
         return new NewsItem(null, "title", "author", "content")
     }
-
-    static def JSON = new JsonSlurper()
 
     def newsItemDAO = Mock(NewsItemDAO)
 

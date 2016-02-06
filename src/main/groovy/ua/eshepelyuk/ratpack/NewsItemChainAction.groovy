@@ -1,11 +1,12 @@
 package ua.eshepelyuk.ratpack
 
 import ratpack.groovy.handling.GroovyChainAction
+import ratpack.jackson.Jackson
 
 import javax.inject.Inject
 
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND
 import static ratpack.http.Status.of
-import static ratpack.jackson.Jackson.json
 
 class NewsItemChainAction extends GroovyChainAction {
 
@@ -16,23 +17,35 @@ class NewsItemChainAction extends GroovyChainAction {
     void execute() throws Exception {
 
         get(":id") {
-            def item = newsItemDAO.findById(pathTokens.id as Long)
-            if (item) {
-                render json(item)
-            } else {
-                context.response.status(of(404)).send("News Item not found by id=${pathTokens.id}")
+            byContent {
+                json {
+                    def item = newsItemDAO.findById(pathTokens.id as Long)
+                    if (item) {
+                        render Jackson.json(item)
+                    } else {
+                        context.response.status(of(NOT_FOUND.code())).send("News Item not found by id=${pathTokens.id}")
+                    }
+                }
             }
         }
 
         all {
             byMethod {
                 post {
-                    context.parse(NewsItem)
-                        .blockingMap { newsItemDAO.insert(it) }
-                        .then { context.response.send(it.toString()) }
+                    byContent {
+                        json {
+                            context.parse(NewsItem)
+                                .blockingMap { newsItemDAO.insert(it) }
+                                .then { context.response.send(it.toString()) }
+                        }
+                    }
                 }
                 get {
-                    render json(newsItemDAO.findAll())
+                    byContent {
+                        json {
+                            render Jackson.json(newsItemDAO.findAll())
+                        }
+                    }
                 }
             }
         }
