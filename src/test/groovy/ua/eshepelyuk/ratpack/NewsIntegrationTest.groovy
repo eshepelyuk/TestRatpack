@@ -16,7 +16,7 @@ import static ratpack.http.MediaType.APPLICATION_JSON
 
 class NewsIntegrationTest extends Specification {
 
-    static String DB_URL = "jdbc:h2:mem:dev;DATABASE_TO_UPPER=false"
+    static String DB_URL = "jdbc:h2:mem:${NewsIntegrationTest.name};DATABASE_TO_UPPER=false"
 
     @Shared
     @AutoCleanup
