@@ -7,6 +7,10 @@ import ua.eshepelyuk.ratpack.FlywayService
 import ua.eshepelyuk.ratpack.NewsItemChainAction
 import ua.eshepelyuk.ratpack.NewsItemDAO
 
+import javax.validation.Validation
+import javax.validation.Validator
+import ratpack.handling.RequestLogger
+
 import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
@@ -24,9 +28,12 @@ ratpack {
         bind(NewsItemDAO)
 
         bind(NewsItemChainAction)
+
+        bindInstance Validator, Validation.buildDefaultValidatorFactory().validator
     }
 
     handlers {
+        all RequestLogger.ncsa()
         prefix("news") {
             all chain(NewsItemChainAction)
         }

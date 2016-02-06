@@ -6,8 +6,12 @@ import ratpack.jackson.JsonRender
 import spock.lang.Ignore
 import spock.lang.Specification
 
+import javax.validation.Validation
+import javax.validation.ValidatorFactory
+
 import static groovy.json.JsonOutput.toJson
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_ACCEPTABLE
+import static io.netty.handler.codec.http.HttpResponseStatus.UNPROCESSABLE_ENTITY
 import static ratpack.groovy.test.handling.GroovyRequestFixture.handle
 import static ratpack.handling.internal.DefaultByContentSpec.TYPE_JSON
 import static ratpack.handling.internal.DefaultByContentSpec.TYPE_XML
@@ -23,7 +27,8 @@ class NewsTest extends Specification {
 
     def newsItemDAO = Mock(NewsItemDAO)
 
-    def newsItemActionChain = new NewsItemChainAction(newsItemDAO: newsItemDAO)
+    def validator = Validation.buildDefaultValidatorFactory().validator
+    def newsItemActionChain = new NewsItemChainAction(newsItemDAO: newsItemDAO, validator: validator)
 
     def "should use DAO for find all news"() {
         given:
@@ -171,8 +176,7 @@ class NewsTest extends Specification {
         response.exception(JsonParseException) != null
     }
 
-    @Ignore
-    def "should Validate Item When Adding News"() {
+    def "should validate item when adding news"() {
         given: "item violating validation"
         NewsItem item = new NewsItem(null, null, "author5", "content5", new Date());
         0 * newsItemDAO.insert(_)
@@ -186,6 +190,6 @@ class NewsTest extends Specification {
         }
 
         then: "DAO not called and 4XX returned"
-        response.status.code == 422
+        response.status.code == UNPROCESSABLE_ENTITY.code()
     }
 }
