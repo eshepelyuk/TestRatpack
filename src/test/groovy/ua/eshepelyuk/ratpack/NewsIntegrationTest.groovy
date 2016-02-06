@@ -16,18 +16,20 @@ import static ratpack.http.MediaType.APPLICATION_JSON
 
 class NewsIntegrationTest extends Specification {
 
+    static String DB_URL = "jdbc:h2:mem:dev;DATABASE_TO_UPPER=false"
+
     @Shared
     @AutoCleanup
-    Sql sql = Sql.newInstance("jdbc:h2:mem:dev;DATABASE_TO_UPPER=false", "sa", "")
+    Sql sql = Sql.newInstance(DB_URL, "sa", "")
 
     @Shared
     @AutoCleanup
     ServerBackedApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest() {
         @Override
         protected void addImpositions(ImpositionsSpec impositions) {
-            impositions.add(ServerConfigImposition.of({
-                it.props(["database.url": "jdbc:h2:mem:dev;DATABASE_TO_UPPER=false"])
-            }))
+            impositions.add(ServerConfigImposition.of {
+                it.props "database.url": DB_URL
+            })
         }
     }
 
