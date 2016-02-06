@@ -1,6 +1,5 @@
 package ua.eshepelyuk.ratpack
 
-import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.sql.Sql
 import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
@@ -10,6 +9,7 @@ import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 
+import static groovy.json.JsonOutput.toJson
 import static ratpack.http.MediaType.APPLICATION_JSON
 
 class NewsIntegrationTest extends Specification {
@@ -22,14 +22,18 @@ class NewsIntegrationTest extends Specification {
     TestHttpClient client = testHttpClient(aut)
 
     @Shared
+    @AutoCleanup
     Sql sql = Sql.newInstance("jdbc:h2:mem:dev;DATABASE_TO_UPPER=false", "sa", "")
+
+    @Shared
+    def JSON = new JsonSlurper()
 
     def "when news posted then it appears in all items list"() {
         when: "posting news item"
         requestSpec {
             it.body.with {
                 type(APPLICATION_JSON)
-                text(JsonOutput.toJson(new NewsItem(title: "title1", author: "author1", content: "content1")))
+                text(toJson(new NewsItem(title: "title1", author: "author1", content: "content1")))
             }
         }
         and:
@@ -37,21 +41,14 @@ class NewsIntegrationTest extends Specification {
 
         then: "response is OK, DB populated with corresponding item"
         response.statusCode == 200
-        insertedId != null
         and:
         sql.firstRow("select count(*) from news_item where id = ${insertedId}")[0] == 1
 
-        when: "getting list of items"
+        and: "getting list of items only one item is present, and id matches"
         requestSpec {
-            it.body.with {
-                type(APPLICATION_JSON)
-            }
+            it.body.type(APPLICATION_JSON)
         }
-        and:
-        def list = new JsonSlurper().parseText(getText("news"))
-
-        then: "only one item is present, and id matches"
-        list[0].id == insertedId as Long
+        JSON.parseText(getText("news"))[0].id == insertedId as Long
     }
 
     def "when news posted then it can be retrieved separately"() {
@@ -59,20 +56,29 @@ class NewsIntegrationTest extends Specification {
         NewsItem originalItem = new NewsItem(title: "title2", author: "author2", content: "content2");
 
         when: "posting news item"
-//        Response postNewsResp = NEWS.request(APPLICATION_JSON_TYPE).post(json(originalItem));
-//        Long insertedId = postNewsResp.readEntity(Long.class);
+        requestSpec {
+            it.body.with {
+                type(APPLICATION_JSON)
+                text(toJson(originalItem))
+            }
+        }
+        def insertedId = postText("news")
 
         then: "response is OK, DB populated with corresponding item"
-//        assertThat(postNewsResp.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
-//        assertThat((Long) (jdbi.withHandle(handle -> (Long) handle.select("select count(*) as cnt from news_item where id = :id", insertedId).get(0).get("cnt")))).isEqualTo(1L);
+        response.statusCode == 200
+        and:
+        sql.firstRow("select count(*) from news_item where id = ${insertedId}")[0] == 1
 
         when: "getting single item"
-//        NewsItem retrievedItem = NEWS.path("/" + insertedId).request(APPLICATION_JSON_TYPE).get(NewsItem.class);
+        requestSpec {
+            it.body.type(APPLICATION_JSON)
+        }
+        def text = getText("news/$insertedId")
+        def retrievedItem = JSON.parseText(text)
 
         then: "only one item is present, and all field match"
-//        assertThat(retrievedItem.getTitle()).isEqualTo(originalItem.getTitle());
-//        assertThat(retrievedItem.getAuthor()).isEqualTo(originalItem.getAuthor());
-//        assertThat(retrievedItem.getContent()).isEqualTo(originalItem.getContent());
-//        assertThat(retrievedItem.getPublishDate()).isEqualTo(originalItem.getPublishDate());
+        retrievedItem.title == originalItem.title
+        retrievedItem.author == originalItem.author
+        retrievedItem.content == originalItem.content
     }
 }
