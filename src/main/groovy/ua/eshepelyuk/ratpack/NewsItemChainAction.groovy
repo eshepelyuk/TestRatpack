@@ -30,19 +30,15 @@ class NewsItemChainAction extends GroovyChainAction {
         }
 
         all {
-            byMethod {
-                post {
-                    byContent {
-                        json {
+            byContent {
+                json {
+                    byMethod {
+                        post {
                             context.parse(NewsItem)
                                 .blockingMap { newsItemDAO.insert(it) }
                                 .then { context.response.send(it.toString()) }
                         }
-                    }
-                }
-                get {
-                    byContent {
-                        json {
+                        get {
                             render Jackson.json(newsItemDAO.findAll())
                         }
                     }

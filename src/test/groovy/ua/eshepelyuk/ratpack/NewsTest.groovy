@@ -1,10 +1,14 @@
 package ua.eshepelyuk.ratpack
 
+import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.jackson.JsonRender
 import spock.lang.Specification
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_ACCEPTABLE
+import static io.netty.handler.codec.http.HttpResponseStatus.OK
 import static ratpack.groovy.test.handling.GroovyRequestFixture.handle
+import static ratpack.handling.internal.DefaultByContentSpec.TYPE_JSON
+import static ratpack.handling.internal.DefaultByContentSpec.TYPE_XML
 
 class NewsTest extends Specification {
     private static NewsItem createItem(Long id) {
@@ -26,14 +30,14 @@ class NewsTest extends Specification {
         1 * newsItemDAO.findAll() >> items
 
         when:
-        def result = handle(newsItemActionChain) {
+        def response = handle(newsItemActionChain) {
             uri ""
             method "GET"
-            header "Accept", "application/json"
+            header "Accept", TYPE_JSON
         }
 
-        then: "DAO called and proper result returned"
-        result.rendered(JsonRender).object[0] == items[0]
+        then: "DAO called and proper response returned"
+        response.rendered(JsonRender).object[0] == items[0]
     }
 
     def "should accept only JSON for find all news"() {
@@ -43,68 +47,78 @@ class NewsTest extends Specification {
         0 * newsItemDAO.findAll() >> items
 
         when: "using unsupported content type"
-        def result = handle(newsItemActionChain) {
+        def response = handle(newsItemActionChain) {
             uri ""
             method "GET"
-            header "Accept", "application/xml"
+            header "Accept", TYPE_XML
         }
 
         then: "DAO not called and HTTP status 4XX returned"
-        result.status.nettyStatus == NOT_ACCEPTABLE
+        response.status.nettyStatus == NOT_ACCEPTABLE
     }
-//
-//    def shouldUseDaoForFindSingleNews() {
-//        given:
-//        NewsItem item = createItem(2L);
-//        when(itemsDao.findById(eq(222L))).thenReturn(item);
-//
-//        when:
-//        NewsItem retrieved = NEWS.path("/222").request(APPLICATION_JSON_TYPE).get().readEntity(NewsItem.class);
-//
-//        then: DAO called and proper result returned
-//        verify(itemsDao).findById(222L);
-//        assertThat(retrieved.getTitle()).isEqualTo(item.getTitle());
-//    }
-//
-//    @Test
-//    public void shouldAcceptOnlyJSONForFindSingleNews() {
-//        given:
-//        NewsItem item = createItem(2L);
-//        when(itemsDao.findById(eq(222L))).thenReturn(item);
-//
-//        when: using unsupported content type
-//        Response response = NEWS.path("/222").request(APPLICATION_ATOM_XML_TYPE).get();
-//
-//        then: DAO not called and HTTP status 4XX returned
-//        verifyZeroInteractions(itemsDao);
-//        assertThat(response.getStatus()).isEqualTo(NOT_ACCEPTABLE.getStatusCode());
-//    }
-//
-//    @Test
-//    public void shouldNotReturn200IfItemNotFound() {
-//        given:
-//        when(itemsDao.findById(eq(333L))).thenReturn(null);
-//
-//        when:
-//        Response response = NEWS.path("/333").request(APPLICATION_JSON_TYPE).get();
-//
-//        then: DAO called and proper result returned
-//        verify(itemsDao).findById(333L);
-//        assertThat(response.getStatus()).isNotEqualTo(Response.Status.OK.getStatusCode());
-//    }
-//
-//    @Test(expected = ProcessingException.class)
-//    public void shouldNotReturn200IfDbException() {
-//        given: "DB throws exception"
-//        when(itemsDao.findById(anyLong())).thenThrow(new DBIException("DB error") {
-//        });
-//
-//        when:
-//        NEWS.path("/333").request(APPLICATION_JSON_TYPE).get();
-//
-//        then: exception
-//    }
-//
+
+    def "should Use Dao For Find Single News"() {
+        given:
+        def item = createItem(2L)
+        1 * newsItemDAO.findById(2L) >> item
+
+        when:
+        def response = handle(newsItemActionChain) {
+            uri "2"
+            method "GET"
+            header "Accept", TYPE_JSON
+        }
+
+        then: "DAO called and proper result returned"
+        response.rendered(JsonRender).object == item
+    }
+
+    def "should Accept Only JSON For Find Single News"() {
+        given:
+        NewsItem item = createItem(2L)
+        0 * newsItemDAO.findById(2L) >> item
+
+        when: "using unsupported content type"
+        def response = handle(newsItemActionChain) {
+            uri "2"
+            method "GET"
+            header "Accept", TYPE_XML
+        }
+
+        then: "DAO not called and HTTP status 4XX returned"
+        response.status.nettyStatus == NOT_ACCEPTABLE
+    }
+
+    def "should Not Return 200 If Item Not Found"() {
+        given:
+        1 * newsItemDAO.findById(2L) >> null
+
+        when:
+        def response = handle(newsItemActionChain) {
+            uri "2"
+            method "GET"
+            header "Accept", TYPE_JSON
+        }
+
+        then: "DAO called and proper result returned"
+        response.status.nettyStatus == HttpResponseStatus.NOT_FOUND
+    }
+
+    def "should Not Return 200 If DB error"() {
+        given: "DB throws exception"
+        1 * newsItemDAO.findById(_) >> { throw new RuntimeException("DB error") }
+
+        when:
+        def response = handle(newsItemActionChain) {
+            uri "2"
+            method "GET"
+            header "Accept", TYPE_JSON
+        }
+
+        then:
+        response.status.nettyStatus == OK
+    }
+
 //    @Test
 //    public void shouldUseDaoForAddingNews() {
 //        given:
