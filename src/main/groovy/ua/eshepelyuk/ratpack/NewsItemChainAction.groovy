@@ -1,5 +1,6 @@
 package ua.eshepelyuk.ratpack
 
+import groovy.util.logging.Slf4j
 import ratpack.exec.Blocking
 import ratpack.func.Action
 import ratpack.groovy.handling.GroovyChainAction
@@ -15,6 +16,7 @@ import static ratpack.exec.Promise.error
 import static ratpack.exec.Promise.value
 import static ratpack.http.Status.of
 
+@Slf4j
 class NewsItemChainAction extends GroovyChainAction {
 
     @Inject
@@ -53,8 +55,12 @@ class NewsItemChainAction extends GroovyChainAction {
                             } blockingMap { NewsItem item ->
                                 newsItemDAO.insert(item)
                             } onError(IllegalArgumentException, {
+                                log.warn("Error adding news item")
                                 context.response.status(UNPROCESSABLE_ENTITY.code()).send(it.message)
-                            } as Action) then { context.response.send(it.toString()) }
+                            } as Action) then {
+                                log.debug("News item added")
+                                context.response.send(it.toString())
+                            }
                         }
                         get {
                             render Jackson.json(newsItemDAO.findAll())
