@@ -1,9 +1,7 @@
 package ua.eshepelyuk.ratpack
 
 import ratpack.exec.Blocking
-import ratpack.func.Action
 import ratpack.groovy.handling.GroovyChainAction
-import ratpack.jackson.Jackson
 
 import javax.inject.Inject
 import javax.validation.ConstraintViolationException
@@ -14,6 +12,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.UNPROCESSABLE_ENTIT
 import static ratpack.exec.Promise.error
 import static ratpack.exec.Promise.value
 import static ratpack.http.Status.of
+import static ratpack.jackson.Jackson.json
 
 class NewsItemChainAction extends GroovyChainAction {
 
@@ -33,7 +32,9 @@ class NewsItemChainAction extends GroovyChainAction {
                         newsItemDAO.findById(pathTokens.id as Long)
                     } onNull {
                         context.response.status(of(NOT_FOUND.code())).send("News Item not found by id=${pathTokens.id}")
-                    } then { render Jackson.json(it) }
+                    } then {
+                        render json(it)
+                    }
                 }
             }
         }
@@ -50,14 +51,16 @@ class NewsItemChainAction extends GroovyChainAction {
                                 } else {
                                     error(new ConstraintViolationException("NewsItem validation failed", violations))
                                 }
-                            } blockingMap {NewsItem item ->
+                            } blockingMap { NewsItem item ->
                                 newsItemDAO.insert(item)
-                            } onError(IllegalArgumentException, {
-                                context.response.status(UNPROCESSABLE_ENTITY.code()).send(it.message)
-                            } as Action) then { context.response.send(it.toString()) }
+                            } onError(IllegalArgumentException, { Throwable e ->
+                                context.response.status(UNPROCESSABLE_ENTITY.code()).send(e.message)
+                            }) then {
+                                context.response.send(it.toString())
+                            }
                         }
                         get {
-                            render Jackson.json(newsItemDAO.findAll())
+                            render json(newsItemDAO.findAll())
                         }
                     }
                 }
