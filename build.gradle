@@ -19,6 +19,7 @@ dependencies {
     compile "org.scala-lang:scala-library:2.11.1"
 
     testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+    testCompile "io.gatling.highcharts:gatling-charts-highcharts:2.1.7"
 
     runtime 'javax.el:javax.el-api:2.2.4'
     runtime 'org.glassfish.web:javax.el:2.2.4'
