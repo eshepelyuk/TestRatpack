@@ -23,6 +23,7 @@
 # Gradle:
 # .idea/gradle.xml
 # .idea/libraries
+/src/ratpack/dbmain.mv.db
 
 # Mongo Explorer plugin:
 # .idea/mongoSettings.xml

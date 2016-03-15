@@ -1,5 +1,6 @@
 plugins {
     id "groovy"
+    id "scala"
     id "idea"
     id "io.ratpack.ratpack-groovy" version "1.2.0"
 }
@@ -14,11 +15,21 @@ dependencies {
     compile 'org.hibernate:hibernate-validator:5.2.2.Final'
     compile "ch.qos.logback:logback-classic:1.1.3"
 
+    compile "org.scala-lang:scala-library:2.11.1"
+
     testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+    testCompile "io.gatling.highcharts:gatling-charts-highcharts:2.1.7"
 
     runtime 'javax.el:javax.el-api:2.2.4'
     runtime 'org.glassfish.web:javax.el:2.2.4'
 
     testRuntime 'cglib:cglib-nodep:3.2.0'
 
+}
+
+task gatling(type: JavaExec, dependsOn: compileTestScala) {
+    main "io.gatling.app.Gatling"
+    classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.test.compileClasspath
+    args "-bf", "build/classes/test", "-rf", "build/reports/gatling", "-m"
 }
