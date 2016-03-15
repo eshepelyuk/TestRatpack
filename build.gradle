@@ -28,4 +28,4 @@ dependencies {
 
 }
 
-tasks["gatling"].classesDir = file("${buildDir.absolutePath}/classes/gatling")
+tasks["gatling"].classesDir = tasks["gatlingCompile"].destinationDir
