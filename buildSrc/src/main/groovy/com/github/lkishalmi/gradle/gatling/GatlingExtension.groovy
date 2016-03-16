@@ -6,6 +6,7 @@ package com.github.lkishalmi.gradle.gatling
 class GatlingExtension {
 
     def toolVersion = '2.1.7'
+
     def jvmArgs = [
             '-server',
             '-XX:+UseThreadPriorities',
@@ -23,7 +24,5 @@ class GatlingExtension {
             '-Djava.net.preferIPv4Stack=true',
             '-Djava.net.preferIPv6Addresses=false'
     ]
-
-    boolean mute = true
 }
 

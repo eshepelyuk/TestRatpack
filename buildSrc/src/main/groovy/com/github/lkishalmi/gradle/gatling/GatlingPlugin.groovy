@@ -37,10 +37,7 @@ class GatlingPlugin implements Plugin<Project> {
 
             classpath = project.configurations.gatlingRuntime
 
-            if (gatlingExt.mute) {
-                args "-m"
-            }
-
+            args "-m"
             args "-bf", "${project.sourceSets.gatling.output.classesDir}"
             args "-df", "${project.sourceSets.gatling.output.resourcesDir}/data"
             args "-bdf", "${project.sourceSets.gatling.output.resourcesDir}/bodies"
@@ -67,16 +64,16 @@ class GatlingPlugin implements Plugin<Project> {
                         scopes.TEST.plus += [project.configurations.gatlingCompile]
                     }
                 }
-//                project.idea {
-//                    module {
-//                        project.sourceSets.gatling.scala.srcDirs.each {
-//                            testSourceDirs += project.file(it)
-//                        }
-//                        project.sourceSets.gatling.resources.srcDirs.each {
-//                            testSourceDirs += project.file(it)
-//                        }
-//                    }
-//                }
+                project.idea {
+                    module {
+                        project.sourceSets.gatling.scala.srcDirs.each {
+                            testSourceDirs += project.file(it)
+                        }
+                        project.sourceSets.gatling.resources.srcDirs.each {
+                            testSourceDirs += project.file(it)
+                        }
+                    }
+                }
             }
         }
     }
