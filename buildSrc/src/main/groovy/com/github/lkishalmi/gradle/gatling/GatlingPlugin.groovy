@@ -34,7 +34,7 @@ class GatlingPlugin implements Plugin<Project> {
             description = "Executes all Gatling scenarios"
             group = "Test"
 
-            classpath = (project.configurations.gatlingRuntime)
+            classpath = project.configurations.gatlingRuntime
 
             if (gatlingExt.mute) {
                 args "-m"
@@ -81,12 +81,19 @@ class GatlingPlugin implements Plugin<Project> {
     }
 
     protected void createConfiguration(GatlingExtension gatlingExtension) {
+        project.configurations {
+            gatlingCompile {
+                visible = false
+            }
+            gatlingRuntime {
+                visible = false
+            }
+        }
+
         project.sourceSets {
             gatling {
                 scala.srcDirs 'src/gatling/scala'
                 resources.srcDirs 'src/gatling/resources'
-                compileClasspath += (project.configurations.compile + project.configurations.gatlingCompile/* + main.output */)
-                runtimeClasspath += (project.configurations.runtime + project.configurations.gatlingCompile)
             }
         }
 

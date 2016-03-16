@@ -27,4 +27,6 @@ dependencies {
     runtime 'org.glassfish.web:javax.el:2.2.4'
 
     testRuntime 'cglib:cglib-nodep:3.2.0'
+
+    gatlingCompile "org.flywaydb:flyway-core:3.2.1"
 }

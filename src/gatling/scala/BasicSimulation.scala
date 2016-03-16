@@ -1,6 +1,9 @@
-
+import io.gatling.core.Predef._
+import io.gatling.http.Predef._
 
 class BasicSimulation extends Simulation {
+
+  org.flywaydb.core.internal.util.StringUtils.hasText("")
 
   val feeder = csv("data.csv").random
 
@@ -8,7 +11,8 @@ class BasicSimulation extends Simulation {
 
   val scn = scenario("BasicSimulation")
     .feed(feeder)
-    .exec(http("GET /news").get("/news?query=${search}"))
+    .exec(http("GET /news").get(s"/news?${org.flywaydb.core.internal.util.StringUtils.left("qwe", 2)}" + "=${search}"))
+
 
   setUp(
     scn.inject(atOnceUsers(4))
