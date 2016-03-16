@@ -15,6 +15,7 @@ class GatlingPlugin implements Plugin<Project> {
 
     private final String GATLING_TASK_NAME = 'gatlingRun'
     private final String GATLING_MAIN_CLASS = 'io.gatling.app.Gatling'
+
     private Project project
 
     void apply(Project project) {
@@ -30,7 +31,7 @@ class GatlingPlugin implements Plugin<Project> {
 
         project.tasks.create(name: GATLING_TASK_NAME, type: JavaExec) {
             dependsOn project.tasks.gatlingClasses
-            main = "io.gatling.app.Gatling"
+            main = GATLING_MAIN_CLASS
             description = "Executes all Gatling scenarios"
             group = "Test"
 
@@ -94,15 +95,14 @@ class GatlingPlugin implements Plugin<Project> {
             gatling {
                 scala.srcDirs 'src/gatling/scala'
                 resources.srcDirs 'src/gatling/resources'
-//                compileClasspath += main.output
-//                runtimeClasspath += main.output
             }
         }
 
         project.dependencies {
             gatlingCompile "io.gatling.highcharts:gatling-charts-highcharts:${gatlingExtension.toolVersion}"
+
             gatlingCompile project.sourceSets.main.output
-            gatlingRuntime project.sourceSets.main.output
+            gatlingCompile project.sourceSets.test.output
         }
     }
 

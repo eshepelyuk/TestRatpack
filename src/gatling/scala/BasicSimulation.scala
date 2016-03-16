@@ -11,7 +11,7 @@ class BasicSimulation extends Simulation {
 
   val scn = scenario("BasicSimulation")
     .feed(feeder)
-    .exec(http("GET /news").get(s"/news?${org.flywaydb.core.internal.util.StringUtils.left("qwe", 2)}" + "=${search}"))
+    .exec(http("Retrieve News").get(s"${ua.eshepelyuk.ratpack.GatlingJavaTest.RESOURCE_URL}?${org.flywaydb.core.internal.util.StringUtils.left("qwe", 2)}" + "=${search}"))
 
 
   setUp(
