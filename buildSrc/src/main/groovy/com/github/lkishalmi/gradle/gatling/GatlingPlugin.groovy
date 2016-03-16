@@ -4,6 +4,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.api.tasks.JavaExec
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
 /**
@@ -33,25 +34,28 @@ class GatlingPlugin implements Plugin<Project> {
         createConfiguration(gatlingExt)
         configureGatlingCompile(gatlingExt)
 
-        def gatlingTask = project.tasks.create(GATLING_TASK_NAME, Gatling)
-        gatlingTask.description = "Executes all Gatling scenarioes"
-        gatlingTask.group = "Test"
+        project.tasks.create(name: GATLING_TASK_NAME, type: JavaExec) {
+            dependsOn project.tasks.gatlingClasses
+            main = "io.gatling.app.Gatling"
+            description = "Executes all Gatling scenarios"
+            group = "Test"
 
-
-        project.tasks.addRule('Pattern: gatlingExt<SimulationName>: Executes a named Gatling simulation.') {
-            def taskName ->
-                if (taskName.startsWith(GATLING_TASK_NAME) && !taskName.equals(GATLING_TASK_NAME)) {
-                    def simulationName = taskName - GATLING_TASK_NAME
-                    project.tasks.create(taskName, Gatling) {
-                        simulation = simulationName
-                    }
-                }
+            classpath = (project.configurations.gatlingRuntime)
+            args "-m", "-bf", "${project.sourceSets.gatling.output.classesDir}"
+            args "-df", "${project.sourceSets.gatling.output.resourcesDir}/data"
+            args "-bdf", "${project.sourceSets.gatling.output.resourcesDir}/bodies"
+            args "-rf", "${project.buildDir}/gatling"
         }
 
-        project.tasks.withType(Gatling) { Gatling task ->
-            task.dependsOn(project.gatlingClasses)
-            configureGatlingTask(task, gatlingExt)
-        }
+//        project.tasks.addRule('Pattern: gatlingExt<SimulationName>: Executes a named Gatling simulation.') {
+//            def taskName ->
+//                if (taskName.startsWith(GATLING_TASK_NAME) && !taskName.equals(GATLING_TASK_NAME)) {
+//                    def simulationName = taskName - GATLING_TASK_NAME
+//                    project.tasks.create(taskName, Gatling) {
+//                        simulation = simulationName
+//                    }
+//                }
+//        }
 
         project.afterEvaluate {
             def hasIdea = project.plugins.findPlugin(IdeaPlugin)
