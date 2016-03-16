@@ -104,20 +104,5 @@ class GatlingPlugin implements Plugin<Project> {
             }
         }
     }
-
-    def configureGatlingTask(Gatling task, GatlingExtension gatling) {
-        task.conventionMapping.with {
-            simulationsDir = { gatling.simulationsDir }
-            dataDir = { gatling.dataDir }
-            bodiesDir = { gatling.bodiesDir }
-            reportsDir = { gatling.reportsDir }
-            confDir = { gatling.confDir }
-            classesDir = { project.sourceSets.gatling.output.classesDir }
-            classpath = {
-                project.configurations.gatlingCompile + project.configurations.gatlingRuntime
-            }
-            mute = { gatling.mute }
-        }
-    }
 }
 
