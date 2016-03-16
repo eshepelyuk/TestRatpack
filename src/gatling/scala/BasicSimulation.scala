@@ -7,7 +7,7 @@ class BasicSimulation extends Simulation {
 
   val feeder = csv("data.csv").random
 
-  val httpConf = http.baseURL("http://localhost:5050")
+  val httpConf = http.baseURL(ua.eshepelyuk.ratpack.GatlingJava.BASIC_URL)
 
   val scn = scenario("BasicSimulation")
     .feed(feeder)

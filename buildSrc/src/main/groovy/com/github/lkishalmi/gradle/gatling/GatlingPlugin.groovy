@@ -94,11 +94,15 @@ class GatlingPlugin implements Plugin<Project> {
             gatling {
                 scala.srcDirs 'src/gatling/scala'
                 resources.srcDirs 'src/gatling/resources'
+//                compileClasspath += main.output
+//                runtimeClasspath += main.output
             }
         }
 
         project.dependencies {
             gatlingCompile "io.gatling.highcharts:gatling-charts-highcharts:${gatlingExtension.toolVersion}"
+            gatlingCompile project.sourceSets.main.output
+            gatlingRuntime project.sourceSets.main.output
         }
     }
 
