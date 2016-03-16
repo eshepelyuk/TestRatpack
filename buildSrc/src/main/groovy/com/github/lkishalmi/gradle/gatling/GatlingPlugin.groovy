@@ -29,21 +29,25 @@ class GatlingPlugin implements Plugin<Project> {
         createConfiguration(gatlingExt)
         configureGatlingCompile(gatlingExt)
 
-        project.tasks.create(name: GATLING_TASK_NAME, type: JavaExec) {
-            dependsOn project.tasks.gatlingClasses
-            main = GATLING_MAIN_CLASS
-            description = "Executes all Gatling scenarios"
-            group = "Test"
+        project.tasks.create(name: GATLING_TASK_NAME, dependsOn: project.tasks.gatlingClasses,
+                description: "Executes all Gatling scenarios", group: "Test") << {
 
-            classpath = project.configurations.gatlingRuntime
+            project.sourceSets.gatling.allScala.matching(gatlingExt.simulations).collect { File simu ->
+                (simu.absolutePath - (project.projectDir.absolutePath + "/src/gatling/scala/") - ".scala").replaceAll("/", ".")
+            }.each { String simu ->
+                project.javaexec {
+                    main = GATLING_MAIN_CLASS
+                    classpath = project.configurations.gatlingRuntime
+                    args "-m"
+                    args "-bf", "${project.sourceSets.gatling.output.classesDir}"
+                    args "-s", simu
+                    args "-df", "${project.sourceSets.gatling.output.resourcesDir}/data"
+                    args "-bdf", "${project.sourceSets.gatling.output.resourcesDir}/bodies"
+                    args "-rf", "${project.reportsDir}/gatling"
 
-            args "-m"
-            args "-bf", "${project.sourceSets.gatling.output.classesDir}"
-            args "-df", "${project.sourceSets.gatling.output.resourcesDir}/data"
-            args "-bdf", "${project.sourceSets.gatling.output.resourcesDir}/bodies"
-            args "-rf", "${project.reportsDir}/gatling"
-
-            jvmArgs = gatlingExt.jvmArgs
+                    jvmArgs = gatlingExt.jvmArgs
+                }
+            }
         }
 
 //        project.tasks.addRule('Pattern: gatlingExt<SimulationName>: Executes a named Gatling simulation.') {
@@ -115,6 +119,16 @@ class GatlingPlugin implements Plugin<Project> {
                 }
             }
         }
+    }
+
+    def getGatlingScenarios(sourceSet) {
+        final String scenarioSrcDir = "$project.projectDir.absolutePath/src/$sourceSet.name/scala"
+        final int scenarioPathPrefix = "$scenarioSrcDir/".size()
+        final int scenarioPathSuffix = -('.scala'.size() + 1)
+        sourceSet.allScala.files*.toString().
+                findAll { it.endsWith 'Scenario.scala' }.
+                collect { it[scenarioPathPrefix..scenarioPathSuffix] }*.
+                replace('/', '.')
     }
 }
 

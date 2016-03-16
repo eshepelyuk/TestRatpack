@@ -24,5 +24,9 @@ class GatlingExtension {
             '-Djava.net.preferIPv4Stack=true',
             '-Djava.net.preferIPv6Addresses=false'
     ]
+
+    def simulations = {
+        include "**/*Simulation.scala"
+    }
 }
 

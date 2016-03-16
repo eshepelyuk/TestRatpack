@@ -3,8 +3,6 @@ import io.gatling.http.Predef._
 
 class BasicSimulation extends Simulation {
 
-  org.flywaydb.core.internal.util.StringUtils.hasText("")
-
   val feeder = csv("data.csv").random
 
   val httpConf = http.baseURL(ua.eshepelyuk.ratpack.GatlingJava.BASIC_URL)
