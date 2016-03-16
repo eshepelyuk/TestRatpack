@@ -4,7 +4,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
-import org.gradle.api.tasks.JavaExec
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
 /**
@@ -14,6 +13,9 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 class GatlingPlugin implements Plugin<Project> {
 
     private final String GATLING_TASK_NAME = 'gatling'
+
+    private final String GATLING_TASK_NAME_PREFIX = "$GATLING_TASK_NAME-"
+
     private final String GATLING_MAIN_CLASS = 'io.gatling.app.Gatling'
 
     private Project project
@@ -29,36 +31,18 @@ class GatlingPlugin implements Plugin<Project> {
         createConfiguration(gatlingExt)
         configureGatlingCompile(gatlingExt)
 
-        project.tasks.create(name: GATLING_TASK_NAME, dependsOn: project.tasks.gatlingClasses,
-                description: "Executes all Gatling scenarios", group: "Test") << {
-
-            project.sourceSets.gatling.allScala.matching(gatlingExt.simulations).collect { File simu ->
-                (simu.absolutePath - (project.projectDir.absolutePath + "/src/gatling/scala/") - ".scala").replaceAll("/", ".")
-            }.each { String simu ->
-                project.javaexec {
-                    main = GATLING_MAIN_CLASS
-                    classpath = project.configurations.gatlingRuntime
-                    args "-m"
-                    args "-bf", "${project.sourceSets.gatling.output.classesDir}"
-                    args "-s", simu
-                    args "-df", "${project.sourceSets.gatling.output.resourcesDir}/data"
-                    args "-bdf", "${project.sourceSets.gatling.output.resourcesDir}/bodies"
-                    args "-rf", "${project.reportsDir}/gatling"
-
-                    jvmArgs = gatlingExt.jvmArgs
+        createGatlingTask(GATLING_TASK_NAME, gatlingExt,
+                project.sourceSets.gatling.allScala.matching(gatlingExt.simulations).collect { File simu ->
+                    (simu.absolutePath - (project.projectDir.absolutePath + "/src/gatling/scala/") - ".scala").replaceAll("/", ".")
                 }
-            }
-        }
+        )
 
-//        project.tasks.addRule('Pattern: gatlingExt<SimulationName>: Executes a named Gatling simulation.') {
-//            def taskName ->
-//                if (taskName.startsWith(GATLING_TASK_NAME) && !taskName.equals(GATLING_TASK_NAME)) {
-//                    def simulationName = taskName - GATLING_TASK_NAME
-//                    project.tasks.create(taskName, Gatling) {
-//                        simulation = simulationName
-//                    }
-//                }
-//        }
+        project.tasks.addRule('Pattern: gatling-<SimulationClass>: Executes single Gatling simulation.') {
+            def taskName ->
+                if (taskName.startsWith(GATLING_TASK_NAME_PREFIX)) {
+                    createGatlingTask(taskName, gatlingExt, [taskName - GATLING_TASK_NAME_PREFIX])
+                }
+        }
 
         project.afterEvaluate {
             def hasIdea = project.plugins.findPlugin(IdeaPlugin)
@@ -137,6 +121,8 @@ class GatlingPlugin implements Plugin<Project> {
                     args "-rf", "${project.reportsDir}/gatling"
 
                     jvmArgs = gatlingExt.jvmArgs
+
+                    standardInput = System.in
                 }
             }
         }
