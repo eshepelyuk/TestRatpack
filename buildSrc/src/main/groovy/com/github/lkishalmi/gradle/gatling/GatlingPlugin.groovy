@@ -108,10 +108,10 @@ class GatlingPlugin implements Plugin<Project> {
             bodiesDir = { gatling.bodiesDir }
             reportsDir = { gatling.reportsDir }
             confDir = { gatling.confDir }
-//            classesDir = { project.gatlingCompile.destinationDir }
-//            classpath = {
-//                project.configurations['gatlingCompile'] + project.files(project.gatlingCompile.destinationDir)
-//            }
+            classesDir = { project.sourceSets.gatling.output.classesDir }
+            classpath = {
+                project.configurations.gatlingCompile + project.configurations.gatlingRuntime
+            }
             mute = { gatling.mute }
         }
     }
