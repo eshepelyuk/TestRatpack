@@ -4,7 +4,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
-import org.gradle.api.tasks.scala.ScalaCompile
 
 /**
  *
@@ -22,23 +21,23 @@ class GatlingPlugin implements Plugin<Project> {
         project.pluginManager.apply ScalaBasePlugin
         project.pluginManager.apply JavaPlugin
 
-        def gatling = project.extensions.create('gatling', GatlingExtension)
+        def gatlingExt = project.extensions.create('gatling', GatlingExtension)
 
-        gatling.simulationsDir = "$project.projectDir/src/gatling/simulations" as File
-        gatling.dataDir = "$project.projectDir/src/gatling/data" as File
-        gatling.bodiesDir = "$project.projectDir/src/gatling/bodies" as File
-        gatling.reportsDir = "$project.buildDir/reports/gatling/" as File
-        gatling.confDir = "$project.projectDir/src/gatling/conf" as File
+        gatlingExt.simulationsDir = "$project.projectDir/src/gatlingExt/simulations" as File
+        gatlingExt.dataDir = "$project.projectDir/src/gatlingExt/data" as File
+        gatlingExt.bodiesDir = "$project.projectDir/src/gatlingExt/bodies" as File
+        gatlingExt.reportsDir = "$project.buildDir/reports/gatlingExt/" as File
+        gatlingExt.confDir = "$project.projectDir/src/gatlingExt/conf" as File
 
-        createConfiguration()
-        configureGatlingCompile(gatling)
+        createConfiguration(gatlingExt)
+        configureGatlingCompile(gatlingExt)
 
         def gatlingTask = project.tasks.create(GATLING_TASK_NAME, Gatling)
         gatlingTask.description = "Executes all Gatling scenarioes"
         gatlingTask.group = "Test"
 
 
-        project.tasks.addRule('Pattern: gatling<SimulationName>: Executes a named Gatling simulation.') {
+        project.tasks.addRule('Pattern: gatlingExt<SimulationName>: Executes a named Gatling simulation.') {
             def taskName ->
                 if (taskName.startsWith(GATLING_TASK_NAME) && !taskName.equals(GATLING_TASK_NAME)) {
                     def simulationName = taskName - GATLING_TASK_NAME
@@ -50,18 +49,22 @@ class GatlingPlugin implements Plugin<Project> {
 
         project.tasks.withType(Gatling) { Gatling task ->
             task.dependsOn(project.gatlingClasses)
-            configureGatlingTask(task, gatling)
+            configureGatlingTask(task, gatlingExt)
         }
     }
 
-    protected void createConfiguration() {
+    protected void createConfiguration(GatlingExtension gatlingExtension) {
         project.sourceSets {
             gatling {
                 scala.srcDirs 'src/gatling/scala'
                 resources.srcDirs 'src/gatling/resources'
-                compileClasspath += project.configurations.compile + main.output
+                compileClasspath += (project.configurations.compile + project.configurations.gatlingCompile + main.output)
                 runtimeClasspath += project.configurations.runtime + main.output
             }
+        }
+
+        project.dependencies {
+            gatlingCompile "io.gatling.highcharts:gatling-charts-highcharts:${gatlingExtension.toolVersion}"
         }
     }
 
@@ -70,7 +73,7 @@ class GatlingPlugin implements Plugin<Project> {
         config.defaultDependencies { dependencies ->
             dependencies.add(this.project.dependencies.create("io.gatling.highcharts:gatling-charts-highcharts:${gatling.toolVersion}"))
         }
-        def scalaCompile = project.tasks.create('gatlingCompile', ScalaCompile)
+        def scalaCompile = project.tasks["compileGatlingScala"]
         scalaCompile.conventionMapping.with {
             description = { "Compiles Gatling simulations." }
 //            source = { project.fileTree(dir: gatling.simulationsDir, includes: ['**/*.scala']) }
@@ -93,10 +96,10 @@ class GatlingPlugin implements Plugin<Project> {
             bodiesDir = { gatling.bodiesDir }
             reportsDir = { gatling.reportsDir }
             confDir = { gatling.confDir }
-            classesDir = { project.gatlingCompile.destinationDir }
-            classpath = {
-                project.configurations['gatlingCompile'] + project.files(project.gatlingCompile.destinationDir)
-            }
+//            classesDir = { project.gatlingCompile.destinationDir }
+//            classpath = {
+//                project.configurations['gatlingCompile'] + project.files(project.gatlingCompile.destinationDir)
+//            }
             mute = { gatling.mute }
         }
     }
