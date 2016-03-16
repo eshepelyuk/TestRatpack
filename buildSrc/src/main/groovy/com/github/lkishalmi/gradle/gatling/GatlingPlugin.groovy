@@ -49,7 +49,7 @@ class GatlingPlugin implements Plugin<Project> {
         }
 
         project.tasks.withType(Gatling) { Gatling task ->
-            task.dependsOn(project.compileGatlingScala)
+            task.dependsOn(project.gatlingClasses)
             configureGatlingTask(task, gatling)
         }
     }
@@ -73,9 +73,9 @@ class GatlingPlugin implements Plugin<Project> {
         def scalaCompile = project.tasks.create('gatlingCompile', ScalaCompile)
         scalaCompile.conventionMapping.with {
             description = { "Compiles Gatling simulations." }
-            source = { project.fileTree(dir: gatling.simulationsDir, includes: ['**/*.scala']) }
-            classpath = { config }
-            destinationDir = { project.file("${project.buildDir}/classes/gatling") }
+//            source = { project.fileTree(dir: gatling.simulationsDir, includes: ['**/*.scala']) }
+//            classpath = { config }
+//            destinationDir = { project.file("${project.buildDir}/classes/gatling") }
         }
         project.gradle.projectsEvaluated {
             scalaCompile.scalaCompileOptions.incrementalOptions.with {
