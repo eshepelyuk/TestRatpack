@@ -44,7 +44,7 @@ class GatlingPlugin implements Plugin<Project> {
             args "-bf", "${project.sourceSets.gatling.output.classesDir}"
             args "-df", "${project.sourceSets.gatling.output.resourcesDir}/data"
             args "-bdf", "${project.sourceSets.gatling.output.resourcesDir}/bodies"
-            args "-rf", "${project.buildDir}/gatling"
+            args "-rf", "${project.reportsDir}/gatling"
 
             jvmArgs = gatlingExt.jvmArgs
         }
