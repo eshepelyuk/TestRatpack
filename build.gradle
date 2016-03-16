@@ -31,4 +31,4 @@ dependencies {
 
 }
 
-tasks["gatling"].classesDir = tasks["gatlingCompile"].destinationDir
+//tasks["gatling"].classesDir = tasks["gatlingCompile"].destinationDir

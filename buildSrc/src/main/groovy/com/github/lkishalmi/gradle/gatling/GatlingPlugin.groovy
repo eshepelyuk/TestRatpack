@@ -2,6 +2,7 @@ package com.github.lkishalmi.gradle.gatling
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.scala.ScalaCompile
 
@@ -11,7 +12,7 @@ import org.gradle.api.tasks.scala.ScalaCompile
  */
 class GatlingPlugin implements Plugin<Project> {
 
-    private final String GATLING_TASK_NAME = 'gatling'
+    private final String GATLING_TASK_NAME = 'gatlingRun'
     private final String GATLING_MAIN_CLASS = 'io.gatling.app.Gatling'
     private Project project
 
@@ -19,6 +20,7 @@ class GatlingPlugin implements Plugin<Project> {
         this.project = project
 
         project.pluginManager.apply ScalaBasePlugin
+        project.pluginManager.apply JavaPlugin
 
         def gatling = project.extensions.create('gatling', GatlingExtension)
 
@@ -47,30 +49,24 @@ class GatlingPlugin implements Plugin<Project> {
         }
 
         project.tasks.withType(Gatling) { Gatling task ->
-            task.dependsOn(project.gatlingCompile)
+            task.dependsOn(project.compileGatlingScala)
             configureGatlingTask(task, gatling)
         }
     }
 
     protected void createConfiguration() {
-        project.configurations.create('gatling').with {
-            visible = false
-            transitive = true
-//            extendsFrom project.configurations.compile
+        project.sourceSets {
+            gatling {
+                scala.srcDirs 'src/gatling/scala'
+                resources.srcDirs 'src/gatling/resources'
+                compileClasspath += project.configurations.compile + main.output
+                runtimeClasspath += project.configurations.runtime + main.output
+            }
         }
-
-//        project.sourceSets {
-//            gatling {
-//                scala.srcDir 'src/gatling/scala'
-//                resources.srcDir 'src/gatling/resources'
-//                compileClasspath += project.configurations.compile + main.output
-//                runtimeClasspath += project.configurations.runtime + main.output
-//            }
-//        }
     }
 
     def configureGatlingCompile(GatlingExtension gatling) {
-        def config = project.configurations['gatling']
+        def config = project.configurations['gatlingCompile']
         config.defaultDependencies { dependencies ->
             dependencies.add(this.project.dependencies.create("io.gatling.highcharts:gatling-charts-highcharts:${gatling.toolVersion}"))
         }
@@ -98,7 +94,9 @@ class GatlingPlugin implements Plugin<Project> {
             reportsDir = { gatling.reportsDir }
             confDir = { gatling.confDir }
             classesDir = { project.gatlingCompile.destinationDir }
-            classpath = { project.configurations['gatling'] + project.files(project.gatlingCompile.destinationDir) }
+            classpath = {
+                project.configurations['gatlingCompile'] + project.files(project.gatlingCompile.destinationDir)
+            }
             mute = { gatling.mute }
         }
     }
