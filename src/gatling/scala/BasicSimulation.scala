@@ -1,9 +1,8 @@
-import io.gatling.core.Predef._
-import io.gatling.http.Predef._
+
 
 class BasicSimulation extends Simulation {
 
-  val feeder = csv("data.csv").circular
+  val feeder = csv("data.csv").random
 
   val httpConf = http.baseURL("http://localhost:5050")
 
@@ -12,6 +11,6 @@ class BasicSimulation extends Simulation {
     .exec(http("GET /news").get("/news?query=${search}"))
 
   setUp(
-    scn.inject(atOnceUsers(1))
+    scn.inject(atOnceUsers(4))
   ).protocols(httpConf)
 }

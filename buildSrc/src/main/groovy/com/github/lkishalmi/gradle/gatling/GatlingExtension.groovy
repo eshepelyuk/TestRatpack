@@ -24,15 +24,6 @@ class GatlingExtension {
             '-Djava.net.preferIPv6Addresses=false'
     ]
 
-    def gatlingSourceSetName = 'gatling'
-
-    File simulationsDir
-    File dataDir
-    File bodiesDir
-    File reportsDir
-    File confDir
-    String runDescription
-
     boolean mute = true
 }
 

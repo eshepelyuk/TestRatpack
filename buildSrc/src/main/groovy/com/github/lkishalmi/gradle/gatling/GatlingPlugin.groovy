@@ -25,12 +25,6 @@ class GatlingPlugin implements Plugin<Project> {
 
         def gatlingExt = project.extensions.create('gatling', GatlingExtension)
 
-        gatlingExt.simulationsDir = "$project.projectDir/src/gatlingExt/simulations" as File
-        gatlingExt.dataDir = "$project.projectDir/src/gatlingExt/data" as File
-        gatlingExt.bodiesDir = "$project.projectDir/src/gatlingExt/bodies" as File
-        gatlingExt.reportsDir = "$project.buildDir/reports/gatlingExt/" as File
-        gatlingExt.confDir = "$project.projectDir/src/gatlingExt/conf" as File
-
         createConfiguration(gatlingExt)
         configureGatlingCompile(gatlingExt)
 
@@ -41,10 +35,17 @@ class GatlingPlugin implements Plugin<Project> {
             group = "Test"
 
             classpath = (project.configurations.gatlingRuntime)
-            args "-m", "-bf", "${project.sourceSets.gatling.output.classesDir}"
+
+            if (gatlingExt.mute) {
+                args "-m"
+            }
+
+            args "-bf", "${project.sourceSets.gatling.output.classesDir}"
             args "-df", "${project.sourceSets.gatling.output.resourcesDir}/data"
             args "-bdf", "${project.sourceSets.gatling.output.resourcesDir}/bodies"
             args "-rf", "${project.buildDir}/gatling"
+
+            jvmArgs = gatlingExt.jvmArgs
         }
 
 //        project.tasks.addRule('Pattern: gatlingExt<SimulationName>: Executes a named Gatling simulation.') {
@@ -65,13 +66,16 @@ class GatlingPlugin implements Plugin<Project> {
                         scopes.TEST.plus += [project.configurations.gatlingCompile]
                     }
                 }
-                project.idea {
-                    module {
-                        project.sourceSets.gatling.scala.srcDirs.each {
-                            testSourceDirs += project.file(it)
-                        }
-                    }
-                }
+//                project.idea {
+//                    module {
+//                        project.sourceSets.gatling.scala.srcDirs.each {
+//                            testSourceDirs += project.file(it)
+//                        }
+//                        project.sourceSets.gatling.resources.srcDirs.each {
+//                            testSourceDirs += project.file(it)
+//                        }
+//                    }
+//                }
             }
         }
     }
@@ -81,8 +85,8 @@ class GatlingPlugin implements Plugin<Project> {
             gatling {
                 scala.srcDirs 'src/gatling/scala'
                 resources.srcDirs 'src/gatling/resources'
-                compileClasspath += (project.configurations.compile + project.configurations.gatlingCompile + main.output)
-                runtimeClasspath += project.configurations.runtime + main.output
+                compileClasspath += (project.configurations.compile + project.configurations.gatlingCompile/* + main.output */)
+                runtimeClasspath += (project.configurations.runtime + project.configurations.gatlingCompile)
             }
         }
 
