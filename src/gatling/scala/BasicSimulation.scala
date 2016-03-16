@@ -15,6 +15,6 @@ class BasicSimulation extends Simulation {
 
 
   setUp(
-    scn.inject(atOnceUsers(4))
+    scn.inject(atOnceUsers(1))
   ).protocols(httpConf)
 }

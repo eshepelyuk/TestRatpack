@@ -13,7 +13,7 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
  */
 class GatlingPlugin implements Plugin<Project> {
 
-    private final String GATLING_TASK_NAME = 'gatlingRun'
+    private final String GATLING_TASK_NAME = 'gatling'
     private final String GATLING_MAIN_CLASS = 'io.gatling.app.Gatling'
 
     private Project project
