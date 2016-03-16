@@ -88,10 +88,6 @@ class GatlingPlugin implements Plugin<Project> {
     }
 
     def configureGatlingCompile(GatlingExtension gatling) {
-        def config = project.configurations['gatlingCompile']
-        config.defaultDependencies { dependencies ->
-            dependencies.add(this.project.dependencies.create("io.gatling.highcharts:gatling-charts-highcharts:${gatling.toolVersion}"))
-        }
         def scalaCompile = project.tasks["compileGatlingScala"]
         scalaCompile.conventionMapping.with {
             description = { "Compiles Gatling simulations." }
