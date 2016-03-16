@@ -4,6 +4,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.plugins.ide.idea.IdeaPlugin
 
 /**
  *
@@ -51,6 +52,24 @@ class GatlingPlugin implements Plugin<Project> {
             task.dependsOn(project.gatlingClasses)
             configureGatlingTask(task, gatlingExt)
         }
+
+        project.afterEvaluate {
+            def hasIdea = project.plugins.findPlugin(IdeaPlugin)
+            if (hasIdea) {
+                project.idea {
+                    module {
+                        scopes.TEST.plus += [project.configurations.gatlingCompile]
+                    }
+                }
+                project.idea {
+                    module {
+                        project.sourceSets.gatling.scala.srcDirs.each {
+                            testSourceDirs += project.file(it)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     protected void createConfiguration(GatlingExtension gatlingExtension) {
@@ -76,9 +95,6 @@ class GatlingPlugin implements Plugin<Project> {
         def scalaCompile = project.tasks["compileGatlingScala"]
         scalaCompile.conventionMapping.with {
             description = { "Compiles Gatling simulations." }
-//            source = { project.fileTree(dir: gatling.simulationsDir, includes: ['**/*.scala']) }
-//            classpath = { config }
-//            destinationDir = { project.file("${project.buildDir}/classes/gatling") }
         }
         project.gradle.projectsEvaluated {
             scalaCompile.scalaCompileOptions.incrementalOptions.with {
