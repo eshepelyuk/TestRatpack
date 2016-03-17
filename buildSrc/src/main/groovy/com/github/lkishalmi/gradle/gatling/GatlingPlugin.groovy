@@ -44,26 +44,6 @@ class GatlingPlugin implements Plugin<Project> {
                 }
         }
 
-        project.afterEvaluate {
-            def hasIdea = project.plugins.findPlugin(IdeaPlugin)
-            if (hasIdea) {
-                project.idea {
-                    module {
-                        scopes.TEST.plus += [project.configurations.gatlingCompile]
-                    }
-                }
-                project.idea {
-                    module {
-                        project.sourceSets.gatling.scala.srcDirs.each {
-                            testSourceDirs += project.file(it)
-                        }
-                        project.sourceSets.gatling.resources.srcDirs.each {
-                            testSourceDirs += project.file(it)
-                        }
-                    }
-                }
-            }
-        }
     }
 
     protected void createConfiguration(GatlingExtension gatlingExtension) {
