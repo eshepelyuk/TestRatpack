@@ -3,7 +3,7 @@ plugins {
     id "scala"
     id "idea"
     id "io.ratpack.ratpack-groovy" version "1.2.0"
-    id "com.github.lkishalmi.gatling" version "0.1.2"
+    id "com.github.lkishalmi.gatling" version "0.2.0"
 }
 
 repositories {
@@ -27,5 +27,3 @@ dependencies {
     testRuntime 'cglib:cglib-nodep:3.2.0'
 
 }
-
-tasks["gatling"].classesDir = tasks["gatlingCompile"].destinationDir
