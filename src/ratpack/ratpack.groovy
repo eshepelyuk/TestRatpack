@@ -4,6 +4,7 @@ import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.error.internal.DefaultProductionErrorHandler
 import ratpack.func.Action
+import ratpack.http.*
 import ratpack.groovy.sql.SqlModule
 import ratpack.h2.H2Module
 import ratpack.handling.RequestLogger
@@ -43,6 +44,9 @@ ratpack {
 
     handlers {
         all RequestLogger.ncsa()
+        get("auth") {
+            context.response.status Status.of(403) send("403")
+        }
         prefix("news") {
             all chain(NewsItemChainAction)
         }
